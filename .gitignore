@@ -1,6 +1,6 @@
 # Claude Code
 .obsidian/
-.claude/
+# Note: .claude/ is used for this project's skill structure, do not ignore
 
 # OS
 .DS_Store
