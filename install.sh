@@ -80,14 +80,14 @@ if [[ -f "$CONFIG_FILE" ]]; then
     echo "📋 已有配置:"
     echo "─────────────────────────────────────────────────────────"
     if command -v jq &> /dev/null; then
-        vault_path=$(jq -r '.vault_path' "$CONFIG_FILE" 2>/dev/null)
-        category=$(jq -r '.category' "$CONFIG_FILE" 2>/dev/null)
+        vault_path=$(jq -r '.vault_path' "$CONFIG_FILE" 2>/dev/null || echo "")
+        category=$(jq -r '.category' "$CONFIG_FILE" 2>/dev/null || echo "")
         echo "  Obsidian Vault: $vault_path"
         echo "  项目分类目录: $category"
     else
-        # 使用 grep 和 sed 提取配置
-        vault_path=$(grep '"vault_path"' "$CONFIG_FILE" | sed 's/.*"vault_path"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
-        category=$(grep '"category"' "$CONFIG_FILE" | sed 's/.*"category"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+        # 使用 grep 和 sed 提取配置（添加 || true 避免非零退出）
+        vault_path=$(grep '"vault_path"' "$CONFIG_FILE" 2>/dev/null | sed 's/.*"vault_path"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' || echo "")
+        category=$(grep '"category"' "$CONFIG_FILE" 2>/dev/null | sed 's/.*"category"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' || echo "")
         echo "  Obsidian Vault: $vault_path"
         echo "  项目分类目录: $category"
     fi
