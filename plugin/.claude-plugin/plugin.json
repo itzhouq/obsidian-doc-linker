@@ -1,0 +1,9 @@
+{
+  "name": "obsidian-doc-linker",
+  "description": "将项目文档链接到 Obsidian 仓库的命令。跨平台支持，配置持久化，项目名智能推断。",
+  "version": "2.0.0",
+  "author": {
+    "name": "itzhouq",
+    "email": "itzhouq@example.com"
+  }
+}

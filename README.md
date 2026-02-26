@@ -13,32 +13,57 @@
 - **跨平台支持**：支持 macOS、Linux 和 Windows (Git Bash/WSL)
 - **自定义分类**：支持按分类目录组织项目（如：工作项目、个人项目）
 - **Claude 无感**：符号链接对 Claude Code 透明，不影响 AI 读写文档
+- **斜杠命令**：支持 `/link-docs` 快捷命令
 
 ## 安装
 
-### 方法一：直接下载（推荐）
+### 方法一：Plugin 安装（推荐，支持斜杠命令）
 
-1. 下载最新的 `obsidian-doc-linker.skill` 文件
-2. 将文件复制到 `~/.claude/skills/` 目录
-3. 重启 Claude Code
+```bash
+cd ~/.claude/plugins/cache/local/
+git clone https://github.com/itzhouq/obsidian-doc-linker.git
+mv obsidian-doc-linker plugin
+```
 
-### 方法二：Git Clone
+然后编辑 `~/.claude/plugins/installed_plugins.json`，添加：
+
+```json
+{
+  "version": 2,
+  "plugins": {
+    "obsidian-doc-linker@local": [
+      {
+        "scope": "user",
+        "installPath": "/Users/YOUR_USERNAME/.claude/plugins/cache/local/plugin",
+        "version": "2.0.0",
+        "installedAt": "2025-01-01T00:00:00.000Z",
+        "lastUpdated": "2025-01-01T00:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+**重启 Claude Code** 即可使用 `/link-docs` 命令。
+
+### 方法二：仅 Skill 安装（仅自然语言调用）
 
 ```bash
 cd ~/.claude/skills/
 git clone https://github.com/itzhouq/obsidian-doc-linker.git
 ```
 
-### 方法三：通过 Plugin Marketplace（待发布）
+重启 Claude Code，通过自然语言调用。
 
-```bash
-/plugin marketplace add itzhouq/skills-marketplace
-/plugin install obsidian-doc-linker@skills-marketplace
-```
+### 方法三：手动下载
+
+1. 下载 `obsidian-doc-linker.skill` 文件
+2. 复制到 `~/.claude/skills/` 目录
+3. 重启 Claude Code
 
 ## 使用方法
 
-### 斜杠命令（推荐）
+### 斜杠命令（需要 Plugin 安装）
 
 ```bash
 # 使用默认配置（首次使用会提示输入 vault 路径）
@@ -48,7 +73,7 @@ git clone https://github.com/itzhouq/obsidian-doc-linker.git
 /link-docs --name "我的项目"
 
 # 指定 vault 路径
-/link-docs --vault ~/itzhouq_vault
+/link-docs --vault ~/vault
 
 # 自定义分类目录
 /link-docs --category "工作项目"
@@ -60,7 +85,7 @@ git clone https://github.com/itzhouq/obsidian-doc-linker.git
 /link-docs --vault ~/Documents/vault --name "我的项目" --category "工作项目"
 ```
 
-### 自然语言调用
+### 自然语言调用（Skill 或 Plugin 都支持）
 
 ```
 请帮我把项目链接到 Obsidian
@@ -109,10 +134,17 @@ Obsidian Vault/
 
 ```json
 {
-  "vault_path": "/Users/itzhouq/itzhouq_vault",
+  "vault_path": "/Users/xxx/vault",
   "category": "项目开发"
 }
 ```
+
+## 安装方式对比
+
+| 方式 | 斜杠命令 | 自然语言 | 难度 |
+|------|---------|---------|------|
+| Plugin 安装 | ✅ | ✅ | 中 |
+| 仅 Skill 安装 | ❌ | ✅ | 低 |
 
 ## 跨平台支持
 
@@ -123,6 +155,10 @@ Obsidian Vault/
 | Windows | ✅ 支持 | Git Bash / WSL 环境 |
 
 ## 常见问题
+
+### /link-docs 命令无法使用？
+
+请确保使用 **Plugin 安装** 方式，而不是仅 Skill 安装。
 
 ### 符号链接创建失败？
 
@@ -139,20 +175,6 @@ Obsidian Vault/
 ### 团队协作怎么办？
 
 此配置适用于个人开发。团队成员需要各自配置自己的 Obsidian 路径。
-
-### 移动项目后怎么办？
-
-重新运行 `/link-docs`，配置保持不变，会重新创建符号链接。
-
-## 验证安装
-
-```bash
-# 检查命令是否可用
-/link-docs --help
-
-# 检查 skill 是否加载
-# 应该在系统提示中看到 obsidian-doc-linker
-```
 
 ## 许可证
 
