@@ -14,16 +14,15 @@ if [[ ! -t 0 ]]; then
 ⚠️  检测到脚本正在通过管道运行（如 curl | bash）
     这种方式无法进行交互式配置。
 
-✅ 请使用以下正确的安装方式：
+✅ 请使用以下正确的一键安装方式：
 
-   # 方法 1: 下载后执行（推荐）
-   curl -fsSL -o install.sh https://raw.githubusercontent.com/itzhouq/obsidian-doc-linker/master/install.sh
-   bash install.sh
-
-   # 方法 2: 直接克隆仓库
-   git clone https://github.com/itzhouq/obsidian-doc-linker.git
-   cd obsidian-doc-linker
-   ./install.sh
+   curl -fsSL \
+     -H "Cache-Control: no-cache" \
+     -H "Pragma: no-cache" \
+     -o install.sh \
+     https://raw.githubusercontent.com/itzhouq/obsidian-doc-linker/master/install.sh && \
+   bash install.sh && \
+   rm install.sh
 
 ════════════════════════════════════════════════════════════
 EOF
@@ -72,12 +71,79 @@ fi
 
 success "检测到 Claude Code 目录"
 
-# 获取脚本所在目录
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# 查找 skill 源目录（支持从项目目录或 skills 目录运行）
+find_skill_source() {
+    # 尝试从脚本所在目录查找
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+    # 可能的源路径
+    local possible_paths=(
+        "$script_dir/.claude/skills/obsidian-doc-linker"    # 从项目根目录运行
+        "$script_dir/../.claude/skills/obsidian-doc-linker"  # 从 skills 目录运行
+        "$script_dir/obsidian-doc-linker"                    # 从 .claude 目录运行
+    )
+
+    for path in "${possible_paths[@]}"; do
+        if [[ -d "$path" && -f "$path/SKILL.md" ]]; then
+            echo "$path"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+SKILL_SOURCE="$(find_skill_source)"
+
+# 如果本地找不到源，从 GitHub 获取
+if [[ -z "$SKILL_SOURCE" ]]; then
+    info "本地未找到源目录，从 GitHub 获取..."
+
+    # 创建临时目录
+    TMP_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'obsidian-doc-linker')
+    trap "rm -rf '$TMP_DIR'" EXIT
+
+    # 下载并解压
+    REPO_URL="https://github.com/itzhouq/obsidian-doc-linker"
+    if command -v git &> /dev/null; then
+        git clone --depth 1 --quiet "$REPO_URL" "$TMP_DIR" 2>/dev/null || {
+            error "git clone 失败"
+            exit 1
+        }
+    elif command -v curl &> /dev/null; then
+        curl -fsSL "$REPO_URL/archive/refs/heads/master.tar.gz" | tar -xzf - -C "$TMP_DIR" --strip-components=1 || {
+            error "下载失败"
+            exit 1
+        }
+    else
+        error "需要 git 或 curl 来安装"
+        exit 1
+    fi
+
+    SKILL_SOURCE="$TMP_DIR/.claude/skills/obsidian-doc-linker"
+
+    if [[ ! -d "$SKILL_SOURCE" ]]; then
+        error "下载的文件不完整"
+        exit 1
+    fi
+
+    info "源已下载到临时目录"
+
+    # 标记需要复制而不是符号链接
+    NEED_COPY=true
+fi
+
+# 获取规范路径（解析 .. 和符号链接）
+if command -v realpath &> /dev/null; then
+    SKILL_SOURCE="$(realpath "$SKILL_SOURCE")"
+elif [[ "$OS" == "macos" ]]; then
+    SKILL_SOURCE="$(perl -MCwd -e 'print Cwd::realpath($ARGV[0])' "$SKILL_SOURCE")"
+fi
 
 # 全局安装
 SKILL_DEST="$CLAUDE_DIR/skills/obsidian-doc-linker"
 info "全局安装到: $SKILL_DEST"
+info "源目录: $SKILL_SOURCE"
 
 # 检查是否已安装
 if [[ -e "$SKILL_DEST" ]]; then
@@ -91,9 +157,17 @@ if [[ -e "$SKILL_DEST" ]]; then
     info "已删除旧版本"
 fi
 
-# 创建符号链接
-ln -sf "$SCRIPT_DIR/.claude/skills/obsidian-doc-linker" "$SKILL_DEST"
-success "Skill 已安装到: $SKILL_DEST"
+# 创建符号链接或复制
+if [[ "$NEED_COPY" == true ]]; then
+    # 从临时目录复制
+    cp -R "$SKILL_SOURCE" "$SKILL_DEST"
+    success "Skill 已复制到: $SKILL_DEST"
+    info "（已从 GitHub 下载）"
+else
+    # 创建符号链接
+    ln -sf "$SKILL_SOURCE" "$SKILL_DEST"
+    success "Skill 已安装到: $SKILL_DEST"
+fi
 
 echo ""
 success "安装完成！"
@@ -160,17 +234,11 @@ echo ""
 echo "📋 下一步:"
 echo "─────────────────────────────────────────────────────────"
 echo ""
-echo "重启 Claude Code 后，你可以："
+echo "重启 Claude Code 后，使用自然语言即可调用："
 echo ""
-echo "  1. 使用自然语言调用："
-echo "     \"请帮我把项目链接到 Obsidian\""
-echo "     \"把 CLAUDE.md 迁移到 Obsidian 仓库\""
-echo ""
-echo "  2. 或直接运行脚本："
-echo "     ~/.claude/skills/obsidian-doc-linker/scripts/link_docs.sh"
-echo ""
-echo "  3. 查看帮助："
-echo "     ~/.claude/skills/obsidian-doc-linker/scripts/link_docs.sh --help"
+echo "  \"请帮我把项目链接到 Obsidian\""
+echo "  \"把 CLAUDE.md 迁移到 Obsidian 仓库\""
+echo "  \"将项目文档移动到 Obsidian\""
 echo ""
 echo "════════════════════════════════════════════════════════════"
 echo ""

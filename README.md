@@ -7,6 +7,7 @@
 
 ## 功能特性
 
+- **一键安装**：单条命令自动从 GitHub 获取并安装，无需手动克隆仓库
 - **一键迁移**：自动将项目文档移动到 Obsidian vault 并创建符号链接
 - **配置持久化**：首次配置后，所有项目自动使用相同配置
 - **智能命名**：自动从项目文件夹名推断项目名称，去除版本号后缀
@@ -18,8 +19,9 @@
 
 ### 一键安装（推荐）
 
+一条命令完成安装，脚本会自动从 GitHub 获取所需文件：
+
 ```bash
-# 下载并执行安装脚本
 curl -fsSL \
   -H "Cache-Control: no-cache" \
   -H "Pragma: no-cache" \
@@ -29,9 +31,10 @@ bash install.sh && \
 rm install.sh
 ```
 
-安装脚本会引导你：
-1. 配置 Obsidian vault 路径
-2. 设置默认分类目录
+**安装流程**：
+1. 自动检测并从 GitHub 下载源文件
+2. 安装 Skill 到 `~/.claude/skills/`
+3. 引导配置 Obsidian vault 路径和分类目录
 
 ### 克隆安装
 
