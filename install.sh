@@ -130,15 +130,39 @@ if [[ -z "$SKILL_SOURCE" ]]; then
     # 下载并解压
     REPO_URL="https://github.com/itzhouq/obsidian-doc-linker"
     if command -v git &> /dev/null; then
-        git clone --depth 1 --quiet "$REPO_URL" "$TMP_DIR" 2>/dev/null || {
+        echo "正在从 GitHub 克隆..."
+        git clone --depth 1 "$REPO_URL" "$TMP_DIR" || {
             error "git clone 失败"
+            echo ""
+            info "可能的原因："
+            echo "  1. 网络连接问题"
+            echo "  2. GitHub 访问受限"
+            echo ""
+            info "建议："
+            echo "  1. 检查网络连接"
+            echo "  2. 手动克隆仓库：git clone $REPO_URL"
+            echo "  3. 或使用克隆安装方式"
             exit 1
         }
     elif command -v curl &> /dev/null; then
-        curl -fsSL "$REPO_URL/archive/refs/heads/master.tar.gz" | tar -xzf - -C "$TMP_DIR" --strip-components=1 || {
+        echo "正在下载压缩包..."
+        curl -fSL "$REPO_URL/archive/refs/heads/master.tar.gz" -o "$TMP_DIR/master.tar.gz" || {
             error "下载失败"
+            echo ""
+            info "可能的原因："
+            echo "  1. 网络连接问题"
+            echo "  2. GitHub 访问受限"
+            echo ""
+            info "建议："
+            echo "  1. 检查网络连接"
+            echo "  2. 或使用 git clone 方式安装"
             exit 1
         }
+        tar -xzf "$TMP_DIR/master.tar.gz" -C "$TMP_DIR" --strip-components=1 || {
+            error "解压失败"
+            exit 1
+        }
+        rm -f "$TMP_DIR/master.tar.gz"
     else
         error "需要 git 或 curl 来安装"
         exit 1

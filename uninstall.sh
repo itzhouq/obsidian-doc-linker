@@ -28,11 +28,39 @@ CLAUDE_DIR="$HOME/.claude"
 SKILL_NAME="obsidian-doc-linker"
 SKILL_DEST="$CLAUDE_DIR/skills/$SKILL_NAME"
 CONFIG_DIR="$CLAUDE_DIR/$SKILL_NAME"
+CONFIG_FILE="$CONFIG_DIR/config.json"
 
 # 检查 skill 是否已安装
 if [[ ! -e "$SKILL_DEST" ]]; then
     warning "Skill 未安装: $SKILL_DEST"
-    info "无需卸载"
+    echo ""
+
+    # 检查是否有配置文件
+    if [[ -f "$CONFIG_FILE" ]]; then
+        info "检测到已有配置文件："
+        echo "─────────────────────────────────────────────────────────"
+        if command -v jq &> /dev/null; then
+            vault_path=$(jq -r '.vault_path' "$CONFIG_FILE" 2>/dev/null)
+            category=$(jq -r '.category' "$CONFIG_FILE" 2>/dev/null)
+            echo "  Obsidian Vault: $vault_path"
+            echo "  项目分类目录: $category"
+        else
+            cat "$CONFIG_FILE"
+        fi
+        echo "─────────────────────────────────────────────────────────"
+        echo ""
+        info "提示: 配置文件已保留，Skill 可能未正确安装"
+        echo ""
+        read -p "是否删除配置文件？(y/n): " DELETE_CONFIG_ONLY
+        if [[ "$DELETE_CONFIG_ONLY" =~ ^[Yy]$ ]]; then
+            rm -rf "$CONFIG_DIR"
+            success "配置文件已删除"
+        else
+            info "配置文件已保留"
+        fi
+    else
+        info "无需卸载"
+    fi
     exit 0
 fi
 
