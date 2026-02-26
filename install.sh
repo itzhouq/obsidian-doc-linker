@@ -4,6 +4,32 @@
 
 set -e
 
+# 检测是否在交互式终端中运行
+if [[ ! -t 0 ]]; then
+    cat >&2 << 'EOF'
+╔════════════════════════════════════════════════════════════╗
+║                    安装方式错误                            ║
+╚════════════════════════════════════════════════════════════╝
+
+⚠️  检测到脚本正在通过管道运行（如 curl | bash）
+    这种方式无法进行交互式配置。
+
+✅ 请使用以下正确的安装方式：
+
+   # 方法 1: 下载后执行（推荐）
+   curl -fsSL -o install.sh https://raw.githubusercontent.com/itzhouq/obsidian-doc-linker/master/install.sh
+   bash install.sh
+
+   # 方法 2: 直接克隆仓库
+   git clone https://github.com/itzhouq/obsidian-doc-linker.git
+   cd obsidian-doc-linker
+   ./install.sh
+
+════════════════════════════════════════════════════════════
+EOF
+    exit 1
+fi
+
 # 颜色定义
 RED='\033[0;31m'
 GREEN='\033[0;32m'

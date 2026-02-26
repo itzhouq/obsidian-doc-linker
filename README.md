@@ -19,13 +19,14 @@
 ### 一键安装（推荐）
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/itzhouq/obsidian-doc-linker/master/install.sh | bash
+# 下载并执行安装脚本
+curl -fsSL -o install.sh https://raw.githubusercontent.com/itzhouq/obsidian-doc-linker/master/install.sh
+bash install.sh
 ```
 
 安装脚本会引导你：
-1. 选择安装方式（全局/项目）
-2. 配置 Obsidian vault 路径
-3. 设置默认分类目录
+1. 配置 Obsidian vault 路径
+2. 设置默认分类目录
 
 ### 克隆安装
 
