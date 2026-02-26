@@ -71,6 +71,30 @@ fi
 
 success "检测到 Claude Code 目录"
 
+# 检查并显示已有配置
+CONFIG_DIR="$HOME/.claude/obsidian-doc-linker"
+CONFIG_FILE="$CONFIG_DIR/config.json"
+
+if [[ -f "$CONFIG_FILE" ]]; then
+    echo ""
+    echo "📋 已有配置:"
+    echo "─────────────────────────────────────────────────────────"
+    if command -v jq &> /dev/null; then
+        vault_path=$(jq -r '.vault_path' "$CONFIG_FILE" 2>/dev/null)
+        category=$(jq -r '.category' "$CONFIG_FILE" 2>/dev/null)
+        echo "  Obsidian Vault: $vault_path"
+        echo "  项目分类目录: $category"
+    else
+        # 使用 grep 和 sed 提取配置
+        vault_path=$(grep '"vault_path"' "$CONFIG_FILE" | sed 's/.*"vault_path"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+        category=$(grep '"category"' "$CONFIG_FILE" | sed 's/.*"category"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+        echo "  Obsidian Vault: $vault_path"
+        echo "  项目分类目录: $category"
+    fi
+    echo "─────────────────────────────────────────────────────────"
+    echo ""
+fi
+
 # 查找 skill 源目录（支持从项目目录或 skills 目录运行）
 find_skill_source() {
     # 尝试从脚本所在目录查找
@@ -174,12 +198,9 @@ success "安装完成！"
 echo ""
 
 # 配置向导
-CONFIG_DIR="$HOME/.claude/obsidian-doc-linker"
-CONFIG_FILE="$CONFIG_DIR/config.json"
-
 if [[ -f "$CONFIG_FILE" ]]; then
-    info "已有配置文件:"
-    cat "$CONFIG_FILE"
+    echo ""
+    info "检测到已有配置，如需修改请手动编辑: $CONFIG_FILE"
     echo ""
     read -p "是否重新配置？(y/n): " RECONFIGURE
     if [[ ! "$RECONFIGURE" =~ ^[Yy]$ ]]; then
