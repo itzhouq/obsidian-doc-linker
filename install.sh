@@ -21,7 +21,7 @@ error() { echo -e "${RED}❌ $1${NC}"; }
 detect_os() {
     case "$(uname -s)" in
         Linux*)     echo "linux";;
-        Darwin*)    echo "macos";;;
+        Darwin*)    echo "macos";;
         MINGW*|MSYS*|CYGWIN*) echo "windows";;
         *)          echo "unknown";;
     esac
