@@ -41,6 +41,16 @@ cd obsidian-doc-linker
 ./install.sh
 ```
 
+### 卸载
+
+```bash
+# 下载并执行卸载脚本
+curl -fsSL -o uninstall.sh https://raw.githubusercontent.com/itzhouq/obsidian-doc-linker/master/uninstall.sh
+bash uninstall.sh
+```
+
+卸载脚本仅删除本 skill，不会影响其他已安装的 skill。
+
 ## 使用方法
 
 ### 自然语言调用
