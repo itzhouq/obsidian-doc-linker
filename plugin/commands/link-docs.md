@@ -22,7 +22,7 @@ description: 将项目文档（CLAUDE.md、docs/）链接到 Obsidian 仓库
 /link-docs
 
 # 指定项目名称
-/link-docs --name "淘宝幸运签"
+/link-docs --name "我的项目"
 
 # 指定 vault 路径和项目名称
 /link-docs --vault ~/vault --name "项目A"
@@ -50,4 +50,4 @@ description: 将项目文档（CLAUDE.md、docs/）链接到 Obsidian 仓库
 | `xinyunqian-v2.3` | `xinyunqian` |
 | `myapp-1.0.0` | `myapp` |
 | `project_v2` | `project` |
-| `淘宝幸运签` | `淘宝幸运签` |
+| `我的项目` | `我的项目` |

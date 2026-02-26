@@ -17,15 +17,33 @@
 
 ## 安装
 
-### 方法一：Plugin 安装（推荐，支持斜杠命令）
+### 方法一：Plugin 安装（推荐，支持 `/link-docs` 命令）
+
+#### macOS / Linux
 
 ```bash
+# 1. 克隆到 plugin 目录
 cd ~/.claude/plugins/cache/local/
 git clone https://github.com/itzhouq/obsidian-doc-linker.git
 mv obsidian-doc-linker plugin
+
+# 2. 自动配置插件（一键安装）
+curl -fsSL https://raw.githubusercontent.com/itzhouq/obsidian-doc-linker/master/install.sh | bash
+
+# 3. 重启 Claude Code
 ```
 
-然后编辑 `~/.claude/plugins/installed_plugins.json`，添加：
+#### Windows (Git Bash / WSL)
+
+```bash
+# 1. 克隆到 plugin 目录
+cd ~/.claude/plugins/cache/local/
+git clone https://github.com/itzhouq/obsidian-doc-linker.git
+mv obsidian-doc-linker plugin
+
+# 2. 手动配置
+# 编辑 ~/.claude/plugins/installed_plugins.json，添加以下内容：
+```
 
 ```json
 {
@@ -34,7 +52,7 @@ mv obsidian-doc-linker plugin
     "obsidian-doc-linker@local": [
       {
         "scope": "user",
-        "installPath": "/Users/YOUR_USERNAME/.claude/plugins/cache/local/plugin",
+        "installPath": "C:\\\\Users\\\\YOUR_USERNAME\\\\.claude\\\\plugins\\\\cache\\\\local\\\\plugin",
         "version": "2.0.0",
         "installedAt": "2025-01-01T00:00:00.000Z",
         "lastUpdated": "2025-01-01T00:00:00.000Z"
@@ -81,6 +99,9 @@ git clone https://github.com/itzhouq/obsidian-doc-linker.git
 # 预览操作（不实际执行）
 /link-docs --dry-run
 
+# 查看帮助
+/link-docs --help
+
 # 完整示例
 /link-docs --vault ~/Documents/vault --name "我的项目" --category "工作项目"
 ```
@@ -98,7 +119,7 @@ git clone https://github.com/itzhouq/obsidian-doc-linker.git
 ```
 Obsidian Vault/
 └── 项目开发/              # 默认分类（可自定义）
-    └── my-mall/         # 智能推断的项目名
+    └── xinyunqian/       # 智能推断的项目名
         ├── CLAUDE.md       # 真实文件
         └── docs/           # 真实目录
 
@@ -112,10 +133,11 @@ Obsidian Vault/
 
 | 参数 | 说明 | 默认值 |
 |------|------|--------|
-| `--vault <path>` | Obsidian vault 路径 | 首次提示，后续自动读取 |
+| `--vault <path>` | Obsidian vault 路径 | 首次提示，后续自动读取配置 |
 | `--name <name>` | 项目名称 | 从文件夹名智能推断 |
 | `--category <name>` | 分类目录名 | "项目开发" |
-| `--dry-run` | 预览操作 | - |
+| `--dry-run` | 预览操作，不实际执行 | - |
+| `--help` | 显示帮助信息 | - |
 
 ## 项目名推断
 
@@ -123,7 +145,7 @@ Obsidian Vault/
 
 | 项目文件夹 | 推断结果 |
 |-----------|---------|
-| `my-mall-v2.3` | `my-mall` |
+| `xinyunqian-v2.3` | `xinyunqian` |
 | `myapp-1.0.0` | `myapp` |
 | `project_v2` | `project` |
 | `我的项目` | `我的项目` |
@@ -175,6 +197,19 @@ Obsidian Vault/
 ### 团队协作怎么办？
 
 此配置适用于个人开发。团队成员需要各自配置自己的 Obsidian 路径。
+
+### 移动项目后怎么办？
+
+重新运行 `/link-docs`，配置保持不变，会重新创建符号链接。
+
+## 验证安装
+
+```bash
+# 检查命令是否可用
+/link-docs --help
+
+# 应该看到帮助信息
+```
 
 ## 许可证
 
