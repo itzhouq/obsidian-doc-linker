@@ -20,8 +20,13 @@
 
 ```bash
 # 下载并执行安装脚本
-curl -fsSL -o install.sh https://raw.githubusercontent.com/itzhouq/obsidian-doc-linker/master/install.sh
-bash install.sh
+curl -fsSL \
+  -H "Cache-Control: no-cache" \
+  -H "Pragma: no-cache" \
+  -o install.sh \
+  https://raw.githubusercontent.com/itzhouq/obsidian-doc-linker/master/install.sh && \
+bash install.sh && \
+rm install.sh
 ```
 
 安装脚本会引导你：
