@@ -71,6 +71,9 @@ fi
 
 success "检测到 Claude Code 目录"
 
+# 步骤 1: 检查配置
+info "[1/6] 检查配置文件..."
+
 # 检查并显示已有配置
 CONFIG_DIR="$HOME/.claude/obsidian-doc-linker"
 CONFIG_FILE="$CONFIG_DIR/config.json"
@@ -93,12 +96,20 @@ if [[ -f "$CONFIG_FILE" ]]; then
     fi
     echo "─────────────────────────────────────────────────────────"
     echo ""
+else
+    info "未找到配置文件，稍后将会引导配置"
 fi
+
+# 步骤 2: 查找 skill 源目录
+info "[2/6] 查找 skill 源目录..."
 
 # 查找 skill 源目录（支持从项目目录或 skills 目录运行）
 find_skill_source() {
     # 尝试从脚本所在目录查找
-    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)" || {
+        echo "错误: 无法获取脚本目录"
+        return 1
+    }
 
     # 可能的源路径
     local possible_paths=(
@@ -117,21 +128,29 @@ find_skill_source() {
     return 1
 }
 
-SKILL_SOURCE="$(find_skill_source)"
+SKILL_SOURCE="$(find_skill_source)" || true
 
 # 如果本地找不到源，从 GitHub 获取
 if [[ -z "$SKILL_SOURCE" ]]; then
     info "本地未找到源目录，从 GitHub 获取..."
 
-    # 创建临时目录
-    TMP_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'obsidian-doc-linker')
+    # 步骤 3: 创建临时目录
+    info "[3/6] 创建临时目录..."
+    TMP_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'obsidian-doc-linker') || {
+        error "无法创建临时目录"
+        exit 1
+    }
     trap "rm -rf '$TMP_DIR'" EXIT
+    info "临时目录: $TMP_DIR"
+
+    # 步骤 4: 下载源文件
+    info "[4/6] 从 GitHub 下载源文件..."
 
     # 下载并解压
     REPO_URL="https://github.com/itzhouq/obsidian-doc-linker"
     if command -v git &> /dev/null; then
-        echo "正在从 GitHub 克隆..."
-        git clone --depth 1 "$REPO_URL" "$TMP_DIR" || {
+        echo "使用 git 克隆..."
+        git clone --depth 1 "$REPO_URL" "$TMP_DIR" 2>&1 || {
             error "git clone 失败"
             echo ""
             info "可能的原因："
@@ -144,8 +163,9 @@ if [[ -z "$SKILL_SOURCE" ]]; then
             echo "  3. 或使用克隆安装方式"
             exit 1
         }
+        success "git clone 完成"
     elif command -v curl &> /dev/null; then
-        echo "正在下载压缩包..."
+        echo "使用 curl 下载..."
         curl -fSL "$REPO_URL/archive/refs/heads/master.tar.gz" -o "$TMP_DIR/master.tar.gz" || {
             error "下载失败"
             echo ""
@@ -158,11 +178,13 @@ if [[ -z "$SKILL_SOURCE" ]]; then
             echo "  2. 或使用 git clone 方式安装"
             exit 1
         }
+        echo "解压文件..."
         tar -xzf "$TMP_DIR/master.tar.gz" -C "$TMP_DIR" --strip-components=1 || {
             error "解压失败"
             exit 1
         }
         rm -f "$TMP_DIR/master.tar.gz"
+        success "下载和解压完成"
     else
         error "需要 git 或 curl 来安装"
         exit 1
@@ -171,7 +193,7 @@ if [[ -z "$SKILL_SOURCE" ]]; then
     SKILL_SOURCE="$TMP_DIR/.claude/skills/obsidian-doc-linker"
 
     if [[ ! -d "$SKILL_SOURCE" ]]; then
-        error "下载的文件不完整"
+        error "下载的文件不完整: $SKILL_SOURCE 不存在"
         exit 1
     fi
 
@@ -179,7 +201,12 @@ if [[ -z "$SKILL_SOURCE" ]]; then
 
     # 标记需要复制而不是符号链接
     NEED_COPY=true
+else
+    info "找到本地源目录: $SKILL_SOURCE"
 fi
+
+# 步骤 5: 获取规范路径
+info "[5/6] 准备安装..."
 
 # 获取规范路径（解析 .. 和符号链接）
 if command -v realpath &> /dev/null; then
@@ -190,7 +217,7 @@ fi
 
 # 全局安装
 SKILL_DEST="$CLAUDE_DIR/skills/obsidian-doc-linker"
-info "全局安装到: $SKILL_DEST"
+info "安装目标: $SKILL_DEST"
 info "源目录: $SKILL_SOURCE"
 
 # 检查是否已安装
@@ -205,16 +232,36 @@ if [[ -e "$SKILL_DEST" ]]; then
     info "已删除旧版本"
 fi
 
+# 步骤 6: 创建符号链接或复制
+echo ""
+info "[6/6] 创建 Skill..."
+
 # 创建符号链接或复制
 if [[ "$NEED_COPY" == true ]]; then
     # 从临时目录复制
-    cp -R "$SKILL_SOURCE" "$SKILL_DEST"
+    echo "复制文件..."
+    cp -R "$SKILL_SOURCE" "$SKILL_DEST" || {
+        error "复制失败"
+        exit 1
+    }
     success "Skill 已复制到: $SKILL_DEST"
     info "（已从 GitHub 下载）"
 else
     # 创建符号链接
-    ln -sf "$SKILL_SOURCE" "$SKILL_DEST"
+    echo "创建符号链接..."
+    ln -sf "$SKILL_SOURCE" "$SKILL_DEST" || {
+        error "创建符号链接失败"
+        exit 1
+    }
     success "Skill 已安装到: $SKILL_DEST"
+fi
+
+# 验证安装
+if [[ -e "$SKILL_DEST/SKILL.md" ]]; then
+    success "安装验证成功"
+else
+    error "安装验证失败: SKILL.md 不存在"
+    exit 1
 fi
 
 echo ""
