@@ -44,79 +44,33 @@ if [[ ! -d "$CLAUDE_DIR" ]]; then
     exit 1
 fi
 
-success "检测到 Claude Code 目录: $CLAUDE_DIR"
+success "检测到 Claude Code 目录"
 
 # 获取脚本所在目录
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# 选择安装方式
-echo ""
-echo "请选择安装方式："
-echo "  1) 全局安装 - 安装到 ~/.claude/skills/，所有项目可用"
-echo "  2) 项目安装 - 安装到当前项目的 .claude/skills/"
-echo ""
-read -p "请输入选项 [1/2] (默认: 1): " INSTALL Choice
-INSTALL_CHOICE=${INSTALL_CHOICE:-1}
+# 全局安装
+SKILL_DEST="$CLAUDE_DIR/skills/obsidian-doc-linker"
+info "全局安装到: $SKILL_DEST"
 
-if [[ "$INSTALL_CHOICE" == "1" ]]; then
-    # 全局安装
-    SKILL_DEST="$CLAUDE_DIR/skills/obsidian-doc-linker"
-
-    info "全局安装模式"
-    info "目标路径: $SKILL_DEST"
-
-    # 检查是否已安装
-    if [[ -e "$SKILL_DEST" ]]; then
-        warning "检测到已安装的 Skill"
-        read -p "是否覆盖？(y/n): " OVERWRITE
-        if [[ ! "$OVERWRITE" =~ ^[Yy]$ ]]; then
-            info "安装已取消"
-            exit 0
-        fi
-        rm -rf "$SKILL_DEST"
-        info "已删除旧版本"
+# 检查是否已安装
+if [[ -e "$SKILL_DEST" ]]; then
+    warning "检测到已安装的 Skill"
+    read -p "是否覆盖？(y/n): " OVERWRITE
+    if [[ ! "$OVERWRITE" =~ ^[Yy]$ ]]; then
+        info "安装已取消"
+        exit 0
     fi
-
-    # 创建符号链接
-    ln -sf "$SCRIPT_DIR/.claude/skills/obsidian-doc-linker" "$SKILL_DEST"
-    success "Skill 已安装到: $SKILL_DEST"
-
-else
-    # 项目安装
-    info "项目安装模式"
-
-    # 检查是否在 git 仓库中
-    if [[ ! -d ".git" ]]; then
-        error "当前目录不是 Git 仓库"
-        info "项目安装需要在 Git 仓库中执行"
-        exit 1
-    fi
-
-    DEST_DIR="./.claude/skills/obsidian-doc-linker"
-
-    # 检查是否已安装
-    if [[ -e "$DEST_DIR" ]]; then
-        warning "检测到 .claude/skills/obsidian-doc-linker 已存在"
-        read -p "是否覆盖？(y/n): " OVERWRITE
-        if [[ ! "$OVERWRITE" =~ ^[Yy]$ ]]; then
-            info "安装已取消"
-            exit 0
-        fi
-        rm -rf "$DEST_DIR"
-    fi
-
-    # 创建目录
-    mkdir -p .claude/skills
-
-    # 创建符号链接到源目录
-    ln -sf "$SCRIPT_DIR/.claude/skills/obsidian-doc-linker" "$DEST_DIR"
-    success "Skill 已链接到项目: $DEST_DIR"
+    rm -rf "$SKILL_DEST"
+    info "已删除旧版本"
 fi
 
+# 创建符号链接
+ln -sf "$SCRIPT_DIR/.claude/skills/obsidian-doc-linker" "$SKILL_DEST"
+success "Skill 已安装到: $SKILL_DEST"
+
 echo ""
-echo "════════════════════════════════════════════════════════════"
 success "安装完成！"
-echo "════════════════════════════════════════════════════════════"
 echo ""
 
 # 配置向导
@@ -135,7 +89,7 @@ fi
 
 if [[ "$CONFIG_DONE" != true ]]; then
     echo ""
-    info "配置向导"
+    echo "配置向导"
     echo "─────────────────────────────────────────────────────────"
     echo ""
 
@@ -187,18 +141,10 @@ echo "     \"请帮我把项目链接到 Obsidian\""
 echo "     \"把 CLAUDE.md 迁移到 Obsidian 仓库\""
 echo ""
 echo "  2. 或直接运行脚本："
-if [[ "$INSTALL_CHOICE" == "1" ]]; then
-    echo "     ~/.claude/skills/obsidian-doc-linker/scripts/link_docs.sh"
-else
-    echo "     .claude/skills/obsidian-doc-linker/scripts/link_docs.sh"
-fi
+echo "     ~/.claude/skills/obsidian-doc-linker/scripts/link_docs.sh"
 echo ""
 echo "  3. 查看帮助："
-if [[ "$INSTALL_CHOICE" == "1" ]]; then
-    echo "     ~/.claude/skills/obsidian-doc-linker/scripts/link_docs.sh --help"
-else
-    echo "     .claude/skills/obsidian-doc-linker/scripts/link_docs.sh --help"
-fi
+echo "     ~/.claude/skills/obsidian-doc-linker/scripts/link_docs.sh --help"
 echo ""
 echo "════════════════════════════════════════════════════════════"
 echo ""
